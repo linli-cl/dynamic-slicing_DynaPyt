@@ -7,7 +7,6 @@ from libcst.metadata import (
 )
 import os
 
-
 class SliceDataflow(BaseAnalysis):
     def __init__(self, source_path):
         with open(source_path, "r") as file:
@@ -39,7 +38,7 @@ class SliceDataflow(BaseAnalysis):
         print('keep_lines',self.keep_lines)
         print('comment_line',self.comment_line) 
 
-    def get_line_infomation(self):  ##stupid way
+    def get_line_infomation(self):  #stupid way
         syntax_tree = cst.parse_module(self.code)
         wrapper = cst.metadata.MetadataWrapper(syntax_tree)
         thepos = wrapper.resolve(PositionProvider)
@@ -83,7 +82,6 @@ class SliceDataflow(BaseAnalysis):
     def write(
         self, dyn_ast: str, iid: int, old_vals: List[Callable], new_val: Any
     ) -> Any:
-        #print("write",old_vals,new_val,type(new_val))
         a,b,c=self.get_location_name(dyn_ast,iid)
         #print(c,b,a)
         if c not in self.graph:
