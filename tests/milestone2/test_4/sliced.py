@@ -5,5 +5,4 @@ def slice_me():
     new_highest_age = middle_age + highest_age
     ages.append(new_highest_age)
     return ages # slicing criterion
-
 slice_me()

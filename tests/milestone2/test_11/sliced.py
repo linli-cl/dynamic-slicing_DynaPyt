@@ -1,9 +1,7 @@
 class Person:
     def __init__(self, name):
         self.name = name
-
 def slice_me():
-    p = Person('Nobody')
-    return p.name # slicing criterion
-
+    p1 = Person('Nobody')
+    return p1 # slicing criterion
 slice_me()
