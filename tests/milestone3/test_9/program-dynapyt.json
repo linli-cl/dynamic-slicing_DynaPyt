@@ -1,0 +1,110 @@
+{
+  "next_iid": 15,
+  "iid_to_location": {
+    "0": {
+      "file": "tests/milestone3/test_9/program.py.orig",
+      "start_line": 1,
+      "start_column": 0,
+      "end_line": 8,
+      "end_column": 17
+    },
+    "1": {
+      "file": "tests/milestone3/test_9/program.py.orig",
+      "start_line": 2,
+      "start_column": 4,
+      "end_line": 2,
+      "end_column": 21
+    },
+    "2": {
+      "file": "tests/milestone3/test_9/program.py.orig",
+      "start_line": 3,
+      "start_column": 4,
+      "end_line": 3,
+      "end_column": 10
+    },
+    "3": {
+      "file": "tests/milestone3/test_9/program.py.orig",
+      "start_line": 4,
+      "start_column": 4,
+      "end_line": 4,
+      "end_column": 10
+    },
+    "4": {
+      "file": "tests/milestone3/test_9/program.py.orig",
+      "start_line": 5,
+      "start_column": 7,
+      "end_line": 5,
+      "end_column": 16
+    },
+    "5": {
+      "file": "tests/milestone3/test_9/program.py.orig",
+      "start_line": 6,
+      "start_column": 12,
+      "end_line": 6,
+      "end_column": 13
+    },
+    "6": {
+      "file": "tests/milestone3/test_9/program.py.orig",
+      "start_line": 6,
+      "start_column": 16,
+      "end_line": 6,
+      "end_column": 17
+    },
+    "7": {
+      "file": "tests/milestone3/test_9/program.py.orig",
+      "start_line": 6,
+      "start_column": 8,
+      "end_line": 6,
+      "end_column": 17
+    },
+    "8": {
+      "file": "tests/milestone3/test_9/program.py.orig",
+      "start_line": 5,
+      "start_column": 4,
+      "end_line": 6,
+      "end_column": 17
+    },
+    "9": {
+      "file": "tests/milestone3/test_9/program.py.orig",
+      "start_line": 7,
+      "start_column": 7,
+      "end_line": 7,
+      "end_column": 16
+    },
+    "10": {
+      "file": "tests/milestone3/test_9/program.py.orig",
+      "start_line": 8,
+      "start_column": 12,
+      "end_line": 8,
+      "end_column": 13
+    },
+    "11": {
+      "file": "tests/milestone3/test_9/program.py.orig",
+      "start_line": 8,
+      "start_column": 16,
+      "end_line": 8,
+      "end_column": 17
+    },
+    "12": {
+      "file": "tests/milestone3/test_9/program.py.orig",
+      "start_line": 8,
+      "start_column": 8,
+      "end_line": 8,
+      "end_column": 17
+    },
+    "13": {
+      "file": "tests/milestone3/test_9/program.py.orig",
+      "start_line": 7,
+      "start_column": 4,
+      "end_line": 8,
+      "end_column": 17
+    },
+    "14": {
+      "file": "tests/milestone3/test_9/program.py.orig",
+      "start_line": 10,
+      "start_column": 0,
+      "end_line": 10,
+      "end_column": 8
+    }
+  }
+}

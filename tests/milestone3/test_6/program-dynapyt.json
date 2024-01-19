@@ -1,0 +1,173 @@
+{
+  "next_iid": 24,
+  "iid_to_location": {
+    "0": {
+      "file": "tests/milestone3/test_6/program.py.orig",
+      "start_line": 2,
+      "start_column": 4,
+      "end_line": 3,
+      "end_column": 24
+    },
+    "1": {
+      "file": "tests/milestone3/test_6/program.py.orig",
+      "start_line": 3,
+      "start_column": 20,
+      "end_line": 3,
+      "end_column": 24
+    },
+    "2": {
+      "file": "tests/milestone3/test_6/program.py.orig",
+      "start_line": 3,
+      "start_column": 8,
+      "end_line": 3,
+      "end_column": 24
+    },
+    "3": {
+      "file": "tests/milestone3/test_6/program.py.orig",
+      "start_line": 5,
+      "start_column": 0,
+      "end_line": 15,
+      "end_column": 17
+    },
+    "4": {
+      "file": "tests/milestone3/test_6/program.py.orig",
+      "start_line": 6,
+      "start_column": 8,
+      "end_line": 6,
+      "end_column": 14
+    },
+    "5": {
+      "file": "tests/milestone3/test_6/program.py.orig",
+      "start_line": 6,
+      "start_column": 4,
+      "end_line": 6,
+      "end_column": 24
+    },
+    "6": {
+      "file": "tests/milestone3/test_6/program.py.orig",
+      "start_line": 7,
+      "start_column": 4,
+      "end_line": 7,
+      "end_column": 72
+    },
+    "7": {
+      "file": "tests/milestone3/test_6/program.py.orig",
+      "start_line": 8,
+      "start_column": 7,
+      "end_line": 8,
+      "end_column": 8
+    },
+    "8": {
+      "file": "tests/milestone3/test_6/program.py.orig",
+      "start_line": 8,
+      "start_column": 7,
+      "end_line": 8,
+      "end_column": 13
+    },
+    "9": {
+      "file": "tests/milestone3/test_6/program.py.orig",
+      "start_line": 8,
+      "start_column": 17,
+      "end_line": 8,
+      "end_column": 36
+    },
+    "10": {
+      "file": "tests/milestone3/test_6/program.py.orig",
+      "start_line": 10,
+      "start_column": 8,
+      "end_line": 10,
+      "end_column": 28
+    },
+    "11": {
+      "file": "tests/milestone3/test_6/program.py.orig",
+      "start_line": 8,
+      "start_column": 4,
+      "end_line": 10,
+      "end_column": 28
+    },
+    "12": {
+      "file": "tests/milestone3/test_6/program.py.orig",
+      "start_line": 11,
+      "start_column": 4,
+      "end_line": 11,
+      "end_column": 18
+    },
+    "13": {
+      "file": "tests/milestone3/test_6/program.py.orig",
+      "start_line": 12,
+      "start_column": 11,
+      "end_line": 12,
+      "end_column": 12
+    },
+    "14": {
+      "file": "tests/milestone3/test_6/program.py.orig",
+      "start_line": 12,
+      "start_column": 11,
+      "end_line": 12,
+      "end_column": 17
+    },
+    "15": {
+      "file": "tests/milestone3/test_6/program.py.orig",
+      "start_line": 12,
+      "start_column": 21,
+      "end_line": 12,
+      "end_column": 40
+    },
+    "16": {
+      "file": "tests/milestone3/test_6/program.py.orig",
+      "start_line": 12,
+      "start_column": 44,
+      "end_line": 12,
+      "end_column": 45
+    },
+    "17": {
+      "file": "tests/milestone3/test_6/program.py.orig",
+      "start_line": 12,
+      "start_column": 44,
+      "end_line": 12,
+      "end_column": 50
+    },
+    "18": {
+      "file": "tests/milestone3/test_6/program.py.orig",
+      "start_line": 12,
+      "start_column": 71,
+      "end_line": 12,
+      "end_column": 81
+    },
+    "19": {
+      "file": "tests/milestone3/test_6/program.py.orig",
+      "start_line": 14,
+      "start_column": 8,
+      "end_line": 14,
+      "end_column": 23
+    },
+    "20": {
+      "file": "tests/milestone3/test_6/program.py.orig",
+      "start_line": 12,
+      "start_column": 4,
+      "end_line": 14,
+      "end_column": 23
+    },
+    "21": {
+      "file": "tests/milestone3/test_6/program.py.orig",
+      "start_line": 15,
+      "start_column": 11,
+      "end_line": 15,
+      "end_column": 12
+    },
+    "22": {
+      "file": "tests/milestone3/test_6/program.py.orig",
+      "start_line": 15,
+      "start_column": 11,
+      "end_line": 15,
+      "end_column": 17
+    },
+    "23": {
+      "file": "tests/milestone3/test_6/program.py.orig",
+      "start_line": 17,
+      "start_column": 0,
+      "end_line": 17,
+      "end_column": 8
+    }
+  }
+}

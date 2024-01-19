@@ -4,5 +4,7 @@ def slice_me():
     b = 15
     if operation == "sum":
         c = a + b # slicing criterion
-
+    if operation == "sub":
+        c = a - b
+        
 slice_me()
