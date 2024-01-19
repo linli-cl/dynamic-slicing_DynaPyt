@@ -50,12 +50,21 @@ class SliceDataflow(BaseAnalysis):
                 otherpart_index.append(i)  #save ClassDef, SimpleStatementLine
         node=wrapper.module.body[index1].body.body # get the node of def slice_me()
 
+        # for i in range(len(node)):
+        #     comment=node[i].trailing_whitespace.comment
+        #     if comment != None:
+        #         location=thepos[node[i]]
+        #         self.comment_line=location.start.line # 1. the line number of the comment line of slice criterion
+        
         for i in range(len(node)):
-            comment=node[i].trailing_whitespace.comment
+            try:
+                comment=node[i].trailing_whitespace.comment
+            except Exception as e:
+                continue
             if comment != None:
                 location=thepos[node[i]]
-                self.comment_line=location.start.line # 1. the line number of the comment line of slice criterion
-        
+                self.comment_line=location.start.line # 1. the line nu
+
         for i in otherpart_index:
             nodes=wrapper.module.body[i]
             self.keep_lines.append([thepos[nodes].start.line,thepos[nodes].end.line]) #2.get the lines of Class and call of slice_me()
@@ -68,6 +77,7 @@ class SliceDataflow(BaseAnalysis):
         print('keep_lines',self.keep_lines)
         print('comment_line',self.comment_line) 
 
+
     def read(self, dyn_ast: str, iid: int, val: Any) -> Any:
         a,b,c =self.get_location_name(dyn_ast,iid) 
         #print(c,b,a) #for debug
@@ -78,7 +88,7 @@ class SliceDataflow(BaseAnalysis):
         if 'libcst._nodes.expression.Name' in str(b):
             self.graph[c]['read'].add(a.value)
         elif 'libcst._nodes.expression.Attribute' in str(b):
-            if a.attr.value == 'append'or a.attr.value == 'pop': 
+            if a.attr.value in ['append','pop','remove', 'insert','extend']:
                 self.graph[c]['write'].add(a.value.value) # modify the code, so here should be 'write'
             else:
                 self.graph[c]['read'].add(a.value.value)
@@ -141,7 +151,7 @@ class SliceDataflow(BaseAnalysis):
         1.Based on the graph, find the lines to be sliced through recursion.
         2.Removes unnecessary lines based on the lines_to_keep and writes the modified code to a new file
         '''
-        #self.print_graph()  #print to debug
+        self.print_graph()  #print to debug
         graph_line=[i for i in reversed(self.graph.keys())]
         begin_slice_line=graph_line.index(self.comment_line)   
         graph_line=graph_line[begin_slice_line:] # 1.1Recursion from the line of slice criterion
@@ -163,6 +173,7 @@ class SliceDataflow(BaseAnalysis):
             for j in range(i[0],i[1]+1):
                 self.slice_results_line.add(j)
         lines_to_keep=[str(i) for i in self.slice_results_line]
+        print('lines_to_keep',lines_to_keep)
 
         # 2.Removes unnecessary lines based on the lines_to_keep and writes the modified code to a new file:
         def remove_lines(code: str, lines_to_keep : List[int]) -> str:
@@ -183,10 +194,12 @@ class SliceDataflow(BaseAnalysis):
             code_modifier = RemoveLines(lines_to_keep)
             new_syntax_tree = wrapper.visit(code_modifier)
             return new_syntax_tree.code
-
+        
         def write_to_file(code: str) -> str:
             with open(os.path.dirname(self.source_path)+'/sliced.py','w') as f:
                 f.write(code)
     
         code=remove_lines(self.code,lines_to_keep)
+        
+        print(code)
         write_to_file(code)
