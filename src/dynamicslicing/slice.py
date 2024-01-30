@@ -33,12 +33,31 @@ class Slice(BaseAnalysis):
         codeline=location.start_line
         return node, type(node),codeline
         
-    def get_line_infomation(self):  #stupid way # Should this be done like this??
+    def get_line_infomation(self): 
         '''
         Get the line numbers of:
         - 1.comment_line: the number of the line code that are used as slice criterion. 
         - 2.keep_lines: the number of lines of code for used Class and the call code of slice_me() by traversing the location.
         '''
+        ### 1. get the line number of the comment line of slice criterion
+        def get_comment():
+            class GetComment(cst.CSTTransformer):
+                METADATA_DEPENDENCIES = ( PositionProvider,)
+                def __init__(self):
+                    self.cl=0
+                def on_leave(self, original_node:"CSTNode", updated_node: "CSTNode" ) :#-> Union["CSTNode", RemovalSentinel]:
+                    location = self.get_metadata(PositionProvider, original_node)
+                    if isinstance(updated_node,cst.Comment):
+                        self.cl=location.start.line
+                    return updated_node
+            syntax_tree = cst.parse_module(self.code)
+            wrapper = cst.metadata.MetadataWrapper(syntax_tree)
+            temp = GetComment()
+            _ = wrapper.visit(temp)
+            return temp.cl
+        self.comment_line=get_comment()
+
+        ### 2.get the lines of Class and call of slice_me()
         syntax_tree = cst.parse_module(self.code)
         wrapper = cst.metadata.MetadataWrapper(syntax_tree)
         thepos = wrapper.resolve(PositionProvider)
@@ -46,6 +65,7 @@ class Slice(BaseAnalysis):
         index1=None
         code_body=wrapper.module.body
         # .body.body[0].body[0].trailing_whitespace.comment.value
+
         for i in range(len(code_body)):  #many parts, such as ClassDef, FunctionDef, SimpleStatementLine
             try:
                 if code_body[i].name.value == 'slice_me':
@@ -56,22 +76,9 @@ class Slice(BaseAnalysis):
                 otherpart_index.append(i)  #save ClassDef, SimpleStatementLine
         node=wrapper.module.body[index1].body.body # get the node of def slice_me()
         
-        for i in range(len(node)): #each part has many nodes
-            # print('node[i]-------------')#,type(node[i]),i,node[i])
-            if 'libcst._nodes.statement.If' in str(type(node[i])): # if
-                comment=node[i].body.body[0].trailing_whitespace.comment
-            else:
-                try: # SimpleStatementLine
-                    comment=node[i].trailing_whitespace.comment
-                except Exception as e:  
-                    continue
-            if comment != None:
-                location=thepos[node[i]]
-                self.comment_line=location.start.line # 1. the line number of the comment line of slice criterion
-        
         for i in otherpart_index:
             nodes=wrapper.module.body[i]
-            self.keep_lines.append([thepos[nodes].start.line,thepos[nodes].end.line]) #2.get the lines of Class and call of slice_me()
+            self.keep_lines.append([thepos[nodes].start.line,thepos[nodes].end.line])
 
     def begin_execution(self) -> None:
         '''
@@ -84,18 +91,19 @@ class Slice(BaseAnalysis):
     def enter_control_flow(
         self, dyn_ast: str, iid: int, cond_value: bool
     ) -> Optional[bool]:
+        # print('enter_control_flow')
         a,b,c =self.get_location_name(dyn_ast,iid) 
-        print(c,b) #for debug 
+        # print(c,b) #for debug 
         body_line=[self.iid_object.iid_to_location[iid].start_line+1, self.iid_object.iid_to_location[iid].end_line+1]
         body_line_list=[i for i in range(body_line[0],body_line[1])]
+        # print('---',type(a))
         if c not in self.control_graph:
             self.control_graph[c] =  {'read':set(),'body_lines':set()}
         for i in body_line_list:
             self.control_graph[c]['body_lines'].add(i)
-
         if 'libcst._nodes.statement.For' in str(type(a)):
             strr=a.iter.value
-        else:           
+        else:         
             if 'libcst._nodes.expression.Attribute' in str(type(a.test.left)):
                 strr=a.test.left.value.value
                 self.control_graph[c]['read'].add(strr)
@@ -107,6 +115,7 @@ class Slice(BaseAnalysis):
             
             # while
             elif 'libcst._nodes.expression.BooleanOperation' in str(type(a.test.left)) and 'libcst._nodes.statement.While' in str(type(a)): 
+                
                 strr1=a.test.left.left.left.value.value  
                 self.control_graph[c]['read'].add(strr1)
                 try:
@@ -130,12 +139,17 @@ class Slice(BaseAnalysis):
                 self.control_graph[c]['read'].add(strr_right)
             except Exception as e:
                 pass
-    
-    def enter_if(self, dyn_ast: str, iid: int, cond_value: bool) -> Optional[bool]:
-        print('enter_if')
-        a,b,c =self.get_location_name(dyn_ast,iid)
-        print(c,b) #for debug
-        
+
+    def pre_call(
+        self, dyn_ast: str, iid: int, function: Callable, pos_args: Tuple, kw_args: Dict
+    ):
+        if 'Person.increase_age' in str(function):
+            # print('pre_call')
+            a,b,c=self.get_location_name(dyn_ast,iid)
+            # print(c,b) #for debug
+            if c not in self.graph:
+                self.graph[c] =  {'write':set(),'read':set(),'addtion':set()}
+            self.graph[c]['write'].add(a.func.value.value)
 
     def read(self, dyn_ast: str, iid: int, val: Any) -> Any:
         a,b,c =self.get_location_name(dyn_ast,iid) 
@@ -227,7 +241,7 @@ class Slice(BaseAnalysis):
         #self.print_graph()  #print to debug
         graph_line=[i for i in reversed(self.graph.keys())]
         begin_slice_line=graph_line.index(self.comment_line)   
-        print(self.comment_line)
+        # print(self.comment_line)
         graph_line=graph_line[begin_slice_line:] # 1.1Recursion from the line of slice criterion
 
         slice_point=self.graph[graph_line[0]]['read']
@@ -243,15 +257,17 @@ class Slice(BaseAnalysis):
                         if self.graph[graph_line[j]]['write']==self.graph[i]['write']:
                             self.slicepoint(graph_line[j:],self.graph[graph_line[j]]['read'])
         
-        print('self.slice_results_line',self.slice_results_line)
+        print('self.slice_results_line before control graph',self.slice_results_line)
 
         # 1.3.Recursion for control flow:
-        graph_line=[i for i in reversed(self.graph.keys())]
-        for i in self.control_graph:
+        control_line=[i for i in reversed(self.control_graph.keys())]
+        for i in control_line:
+            print('contraol graph---,',i)
+            graph_line=[i for i in reversed(self.graph.keys())]
             for j in self.control_graph[i]['body_lines']:
                 if j in self.slice_results_line:
                     self.slice_results_line.add(i)
-                    print(self.control_graph[i]['read'])
+                    print('---',self.control_graph[i]['read'])
                     if self.control_graph[i]['read'] != set():
                         begin_slice_line=graph_line.index(i)   
                         graph_line=graph_line[begin_slice_line:]
@@ -259,31 +275,64 @@ class Slice(BaseAnalysis):
                         print('read_point',read_point)
                         print('graph_line',graph_line)
                         self.slicepoint(graph_line[0:],read_point)
+            # print('temp,,, self.slice_results_line',self.slice_results_line)
                         
-        print('self.slice_results_line',self.slice_results_line)
+        print('self.slice_results_line final',self.slice_results_line)
 
         for i in self.keep_lines: # get the lines of Class(from the start line to the end line) and call of slice_me()
             for j in range(i[0],i[1]+1):
                 self.slice_results_line.add(j)
         lines_to_keep=[str(i) for i in self.slice_results_line]
+        print('lines_to_keep',lines_to_keep)
 
         # 2.Removes unnecessary lines based on the lines_to_keep and writes the modified code to a new file:
         def remove_lines(code: str, lines_to_keep : List[int]) -> str:
             class RemoveLines(cst.CSTTransformer):
                 METADATA_DEPENDENCIES = ( PositionProvider,)
-                def __init__(self, lines_to_keep):
+                def __init__(self, lines_to_keep, control_graph):
                     self.lines_to_keep = lines_to_keep
+                    self.control_graph_cst=control_graph
+                    self.cl=0
+
                 def on_leave(self, original_node:"CSTNode", updated_node: "CSTNode" ) :#-> Union["CSTNode", RemovalSentinel]:
                     location = self.get_metadata(PositionProvider, original_node)
+
+                    ### 1. remove simplestatementline
                     if isinstance(updated_node, cst.SimpleStatementLine) and str(location.start.line) not in self.lines_to_keep:
                         return cst.RemoveFromParent()
                     elif isinstance(updated_node,cst.EmptyLine): 
                         return cst.RemoveFromParent()
                     else:
-                        return updated_node
+                        ### 2. remove control flow
+                        namelist=['libcst._nodes.statement.If','libcst._nodes.statement.For','libcst._nodes.statement.While']
+                        for i in namelist:
+                            if i in str(type(updated_node)) and str(location.start.line) not in self.lines_to_keep:
+                                print(self.lines_to_keep)
+                                print(location.start.line)
+                                print('updated_node',type(updated_node))
+                                return cst.RemoveFromParent()
+                        else:
+                            ### 3. remove elif or else
+                            
+                            if ('If' in str(type(updated_node)) or 'Else' in str(type(updated_node))) and location.start.line not in self.control_graph_cst:  
+                                flag=1
+                                print('updated_node',type(updated_node),location.start.line)
+                                for i in self.control_graph_cst:
+                                    if location.start.line > i and location.start.line in self.control_graph_cst[i]['body_lines'] :
+                                        flag=0
+                                        for j in self.control_graph_cst[i]['body_lines']:
+                                            if j > location.start.line and str(j) in self.lines_to_keep:
+                                                flag=1
+                                if flag==0:
+                                    return cst.RemoveFromParent()
+                                else:
+                                    return updated_node
+                            else:     
+                                return updated_node
+
             syntax_tree = cst.parse_module(code)
             wrapper = cst.metadata.MetadataWrapper(syntax_tree)
-            code_modifier = RemoveLines(lines_to_keep)
+            code_modifier = RemoveLines(lines_to_keep,self.control_graph)
             new_syntax_tree = wrapper.visit(code_modifier)
             return new_syntax_tree.code
 
@@ -292,6 +341,7 @@ class Slice(BaseAnalysis):
                 f.write(code)
     
         code=remove_lines(self.code,lines_to_keep)
+        print(code)
         write_to_file(code)
 
     
