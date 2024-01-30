@@ -299,8 +299,8 @@ class Slice(BaseAnalysis):
                     ### 2.1. remove simplestatementline
                     if isinstance(updated_node, cst.SimpleStatementLine) and str(location.start.line) not in self.lines_to_keep:
                         return cst.RemoveFromParent()
-                    elif isinstance(updated_node,cst.EmptyLine): 
-                        return cst.RemoveFromParent()
+                    # elif isinstance(updated_node,cst.EmptyLine): 
+                    #     return cst.RemoveFromParent()
                     else:
                         ### 2.2. remove control flow
                         namelist=['libcst._nodes.statement.If','libcst._nodes.statement.For','libcst._nodes.statement.While']
