@@ -6,4 +6,5 @@ def slice_me():
     else:
         y -= 5
     return y # slicing criterion
+
 slice_me()

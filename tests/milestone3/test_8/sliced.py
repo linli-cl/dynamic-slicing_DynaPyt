@@ -6,4 +6,5 @@ def slice_me():
         if hour < 12:
             greeting = german_greetings[0]
             return greeting # slicing criterion
+
 slice_me()

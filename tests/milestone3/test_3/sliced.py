@@ -6,4 +6,5 @@ def slice_me():
     if new_highest_age <= 150:
         ages.append(new_highest_age)
     return ages # slicing criterion
+
 slice_me()

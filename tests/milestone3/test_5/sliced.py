@@ -6,4 +6,5 @@ def slice_me():
     if current_age == ages[-1]:
         ages[-1] += 50
     return ages # slicing criterion
+
 slice_me()
