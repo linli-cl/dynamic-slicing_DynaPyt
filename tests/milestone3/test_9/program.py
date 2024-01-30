@@ -14,6 +14,6 @@ try:
         if _rt._enter_if_(_dynapyt_ast_, 13, _rt._read_(_dynapyt_ast_, 9, lambda: operation) == "sub"):
             c = _rt._write_(_dynapyt_ast_, 12, _rt._read_(_dynapyt_ast_, 10, lambda: a) - _rt._read_(_dynapyt_ast_, 11, lambda: b), [lambda: c])
             
-    _rt._read_(_dynapyt_ast_, 14, lambda: slice_me)()
+    _rt._call_(_dynapyt_ast_, 15, _rt._read_(_dynapyt_ast_, 14, lambda: slice_me), False, [], {})
 except Exception as _dynapyt_exception_:
     _rt._catch_(_dynapyt_exception_)

@@ -1,5 +1,5 @@
 {
-  "next_iid": 21,
+  "next_iid": 22,
   "iid_to_location": {
     "0": {
       "file": "/home/liln/23w_program_analysis/myproject/Dynamic_Slicing_DynaPyt/tests/milestone3/test_8/program.py.orig",
@@ -147,6 +147,13 @@
       "start_column": 0,
       "end_line": 14,
       "end_column": 8
+    },
+    "21": {
+      "file": "/home/liln/23w_program_analysis/myproject/Dynamic_Slicing_DynaPyt/tests/milestone3/test_8/program.py.orig",
+      "start_line": 14,
+      "start_column": 0,
+      "end_line": 14,
+      "end_column": 10
     }
   }
 }

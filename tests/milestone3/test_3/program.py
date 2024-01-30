@@ -11,10 +11,10 @@ try:
         middle_age = _rt._write_(_dynapyt_ast_, 7, _rt._sub_(_dynapyt_ast_, 6, _rt._read_(_dynapyt_ast_, 5, lambda: ages), [2]), [lambda: middle_age])
         highest_age = _rt._write_(_dynapyt_ast_, 10, _rt._sub_(_dynapyt_ast_, 9, _rt._read_(_dynapyt_ast_, 8, lambda: ages), [-1]), [lambda: highest_age])
         new_highest_age = _rt._write_(_dynapyt_ast_, 13, _rt._read_(_dynapyt_ast_, 11, lambda: middle_age) + _rt._read_(_dynapyt_ast_, 12, lambda: highest_age), [lambda: new_highest_age])
-        if _rt._enter_if_(_dynapyt_ast_, 18, _rt._read_(_dynapyt_ast_, 14, lambda: new_highest_age) <= 150):
-            _rt._attr_(_dynapyt_ast_, 16, _rt._read_(_dynapyt_ast_, 15, lambda: ages), "append")(_rt._read_(_dynapyt_ast_, 17, lambda: new_highest_age))
-        return _rt._read_(_dynapyt_ast_, 19, lambda: ages) # slicing criterion
+        if _rt._enter_if_(_dynapyt_ast_, 19, _rt._read_(_dynapyt_ast_, 14, lambda: new_highest_age) <= 150):
+            _rt._call_(_dynapyt_ast_, 18, _rt._attr_(_dynapyt_ast_, 16, _rt._read_(_dynapyt_ast_, 15, lambda: ages), "append"), False, [("", _rt._read_(_dynapyt_ast_, 17, lambda: new_highest_age))], {})
+        return _rt._read_(_dynapyt_ast_, 20, lambda: ages) # slicing criterion
     
-    _rt._read_(_dynapyt_ast_, 20, lambda: slice_me)()
+    _rt._call_(_dynapyt_ast_, 22, _rt._read_(_dynapyt_ast_, 21, lambda: slice_me), False, [], {})
 except Exception as _dynapyt_exception_:
     _rt._catch_(_dynapyt_exception_)

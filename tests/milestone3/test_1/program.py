@@ -15,6 +15,6 @@ try:
             z -= _rt._aug_assign_(_dynapyt_ast_, 8, lambda: z, 12, 5)
         return _rt._read_(_dynapyt_ast_, 10, lambda: y) # slicing criterion
     
-    _rt._read_(_dynapyt_ast_, 11, lambda: slice_me)()
+    _rt._call_(_dynapyt_ast_, 12, _rt._read_(_dynapyt_ast_, 11, lambda: slice_me), False, [], {})
 except Exception as _dynapyt_exception_:
     _rt._catch_(_dynapyt_exception_)

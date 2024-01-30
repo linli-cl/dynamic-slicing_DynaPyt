@@ -1,7 +1,7 @@
 def slice_me():
     operation = "sum"
+    a = 10
+    b = 15
     if operation == "sum":
-        pass
-    if operation == "sub":
-        pass
+        c = a + b # slicing criterion
 slice_me()

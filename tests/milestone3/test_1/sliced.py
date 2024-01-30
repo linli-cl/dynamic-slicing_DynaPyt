@@ -3,7 +3,5 @@ def slice_me():
     y = 2
     if x < 4:
         y += 2
-    if x > 0:
-        pass
     return y # slicing criterion
 slice_me()

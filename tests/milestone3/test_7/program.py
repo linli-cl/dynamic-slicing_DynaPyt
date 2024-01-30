@@ -14,13 +14,13 @@ try:
             self.age += _rt._aug_assign_(_dynapyt_ast_, 8, lambda: _rt._attr_(_dynapyt_ast_, 6, _rt._read_(_dynapyt_ast_, 5, lambda: self), "age"), 0, _rt._read_(_dynapyt_ast_, 7, lambda: years))
                 
     def slice_me():
-        p = _rt._write_(_dynapyt_ast_, 11, _rt._read_(_dynapyt_ast_, 10, lambda: Person)('Nobody'), [lambda: p])
-        while _rt._enter_while_(_dynapyt_ast_, 16, _rt._attr_(_dynapyt_ast_, 13, _rt._read_(_dynapyt_ast_, 12, lambda: p), "age") < 18):
-            _rt._attr_(_dynapyt_ast_, 15, _rt._read_(_dynapyt_ast_, 14, lambda: p), "increase_age")(1)
-        if _rt._enter_if_(_dynapyt_ast_, 23, _rt._attr_(_dynapyt_ast_, 18, _rt._read_(_dynapyt_ast_, 17, lambda: p), "age") == 18):
-            print(f'{_rt._attr_(_dynapyt_ast_, 20, _rt._read_(_dynapyt_ast_, 19, lambda: p), "name")} is {_rt._attr_(_dynapyt_ast_, 22, _rt._read_(_dynapyt_ast_, 21, lambda: p), "age")}')
-        return _rt._read_(_dynapyt_ast_, 24, lambda: p) # slicing criterion
+        p = _rt._write_(_dynapyt_ast_, 12, _rt._call_(_dynapyt_ast_, 11, _rt._read_(_dynapyt_ast_, 10, lambda: Person), False, [("", 'Nobody')], {}), [lambda: p])
+        while _rt._enter_while_(_dynapyt_ast_, 18, _rt._attr_(_dynapyt_ast_, 14, _rt._read_(_dynapyt_ast_, 13, lambda: p), "age") < 18):
+            _rt._call_(_dynapyt_ast_, 17, _rt._attr_(_dynapyt_ast_, 16, _rt._read_(_dynapyt_ast_, 15, lambda: p), "increase_age"), False, [("", 1)], {})
+        if _rt._enter_if_(_dynapyt_ast_, 26, _rt._attr_(_dynapyt_ast_, 20, _rt._read_(_dynapyt_ast_, 19, lambda: p), "age") == 18):
+            _rt._call_(_dynapyt_ast_, 25, print, False, [("", f'{_rt._attr_(_dynapyt_ast_, 22, _rt._read_(_dynapyt_ast_, 21, lambda: p), "name")} is {_rt._attr_(_dynapyt_ast_, 24, _rt._read_(_dynapyt_ast_, 23, lambda: p), "age")}')], {})
+        return _rt._read_(_dynapyt_ast_, 27, lambda: p) # slicing criterion
     
-    _rt._read_(_dynapyt_ast_, 25, lambda: slice_me)()
+    _rt._call_(_dynapyt_ast_, 29, _rt._read_(_dynapyt_ast_, 28, lambda: slice_me), False, [], {})
 except Exception as _dynapyt_exception_:
     _rt._catch_(_dynapyt_exception_)

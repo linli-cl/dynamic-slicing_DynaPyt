@@ -7,8 +7,6 @@ class Person:
 def slice_me():
     p = Person('Nobody')
     while p.age < 18:
-        pass
-    if p.age == 18:
-        pass
+        p.increase_age(1)
     return p # slicing criterion
 slice_me()

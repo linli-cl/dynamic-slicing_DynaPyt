@@ -18,6 +18,6 @@ try:
             hour += _rt._aug_assign_(_dynapyt_ast_, 17, lambda: hour, 0, 1)
         return _rt._read_(_dynapyt_ast_, 19, lambda: greeting)
     
-    _rt._read_(_dynapyt_ast_, 20, lambda: slice_me)()
+    _rt._call_(_dynapyt_ast_, 21, _rt._read_(_dynapyt_ast_, 20, lambda: slice_me), False, [], {})
 except Exception as _dynapyt_exception_:
     _rt._catch_(_dynapyt_exception_)
