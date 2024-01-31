@@ -12,6 +12,8 @@ from dynapyt.instrument.instrument import instrument_file
 from dynapyt.utils.hooks import get_hooks_from_analysis
 from dynapyt.analyses.BaseAnalysis import BaseAnalysis
 
+import sys
+sys.path.insert(0, 'src')
 
 def correct_output(expected: str, actual: str) -> bool:
     if actual == expected or actual == expected + "\n":
@@ -41,7 +43,6 @@ def test_runner(directory_pair: Tuple[str, str], capsys):
     analysis_classes = getmembers(
         module, lambda c: isclass(c) and issubclass(c, BaseAnalysis) and c is not BaseAnalysis
     )
-
     # instrument
     program_file = join(abs_dir, "program.py")
     orig_program_file = join(abs_dir, "program.py.orig")
