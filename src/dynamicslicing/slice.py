@@ -109,7 +109,6 @@ class Slice(BaseAnalysis):
         a,b,c=self.get_location_name(dyn_ast,iid) #a,b,c are node, type_node, codeline
         # print('write')
         # print(c,b)
-        # print(type(a))
 
         if c not in self.graph:
             self.graph[c] =  {'write':set(),'read':set(),'addtion':set()}
@@ -270,7 +269,6 @@ class Slice(BaseAnalysis):
             for j in self.control_graph[i]['body_lines']:
                 if j in self.slice_results_line:
                     self.slice_results_line.add(i)
-                    # print('---',self.control_graph[i]['read'])
                     if self.control_graph[i]['read'] != set():
                         begin_slice_line=graph_line.index(i)   
                         graph_line=graph_line[begin_slice_line:]
@@ -299,8 +297,8 @@ class Slice(BaseAnalysis):
                     ### 2.1. remove simplestatementline
                     if isinstance(updated_node, cst.SimpleStatementLine) and str(location.start.line) not in self.lines_to_keep:
                         return cst.RemoveFromParent()
-                    # elif isinstance(updated_node,cst.EmptyLine): 
-                    #     return cst.RemoveFromParent()
+                    elif isinstance(updated_node,cst.EmptyLine):
+                        return cst.RemoveFromParent()
                     else:
                         ### 2.2. remove control flow
                         namelist=['libcst._nodes.statement.If','libcst._nodes.statement.For','libcst._nodes.statement.While']
@@ -311,7 +309,6 @@ class Slice(BaseAnalysis):
                             ### 2.3. remove elif or else
                             if ('If' in str(type(updated_node)) or 'Else' in str(type(updated_node))) and location.start.line not in self.control_graph_cst:  
                                 flag=1
-                                # print('updated_node',type(updated_node),location.start.line)
                                 for i in self.control_graph_cst:
                                     if location.start.line > i and location.start.line in self.control_graph_cst[i]['body_lines'] :
                                         flag=0
