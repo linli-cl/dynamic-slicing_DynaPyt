@@ -79,14 +79,6 @@ class Slice(BaseAnalysis):
             nodes=wrapper.module.body[i]
             self.keep_lines.append([thepos[nodes].start.line,thepos[nodes].end.line])
 
-    def begin_execution(self) -> None:
-        '''
-        Initiates the execution of the analysis.
-        '''
-        self.get_line_infomation()
-        print('keep_lines',self.keep_lines)
-        print('comment_line',self.comment_line) 
-
     def read(self, dyn_ast: str, iid: int, val: Any) -> Any:
         a,b,c =self.get_location_name(dyn_ast,iid) 
         # print('read')
@@ -132,7 +124,7 @@ class Slice(BaseAnalysis):
         path=Path(self.source_path)
         func_name=str(path.parent.name)+'.'
         # if exist the code like 'p2 = p1', the judgment condition is p1. p1 is a object or list： 
-        if func_name in str(type(new_val)) or 'list' in str(type(new_val)): 
+        if func_name in str(type(new_val)) or 'Person' in str(type(new_val)) or 'list' in str(type(new_val)): 
             try:
                 if isinstance(a.value.value,str):   #if the node exist a.value.value, and it is a str
                     self.graph_nodes[c]['addition'].add(a.value.value) 
@@ -235,6 +227,7 @@ class Slice(BaseAnalysis):
     def end_execution(self) -> None:
         '''
         # Finalizes the execution of the analysis.
+        # 0. Initiates the slice of the analysis.
         # 1.Based on the graph_nodes, control_graph_nodes and keep_lines, find the lines to be sliced through recursion.
         # 2.Removes unnecessary lines based on the lines_to_keep and writes the modified code to a new file
         # 3.Write the new code to slice.py
@@ -242,6 +235,11 @@ class Slice(BaseAnalysis):
         print('-------------------------')
         self.print_graph_nodes('control_graph_nodes')
         self.print_graph_nodes()
+
+        ### 0. Get the line number of slice criteria and the statements to be saved outside the scope function.
+        self.get_line_infomation()
+        print('keep_lines',self.keep_lines)
+        print('comment_line',self.comment_line) 
 
         ### 1.Based on the graph_nodes, control_graph_nodes and keep_lines, find the lines to be sliced through recursion.
         # 1.1.Recursion for the graph(from hook read and write, (and pre_call)):
@@ -253,12 +251,18 @@ class Slice(BaseAnalysis):
 
         # 1.2.Recursion for addition test(milestone2 test 11, 12):
         for i in self.graph_nodes:
+            flag=0
             if self.graph_nodes[i]['addition'] != set():
                 templist= [x for x in self.slice_results_line if x < i]
                 if templist != []:
-                    for j in range(len(statements_line)):
-                        if self.graph_nodes[statements_line[j]]['write']==self.graph_nodes[i]['write']:
-                            self.slicepoint(statements_line[j:],self.graph_nodes[statements_line[j]]['read'])
+                    for l in self.slice_results_line:
+                        if self.graph_nodes[int(l)]['read']==self.graph_nodes[i]['addition']:
+                            flag=1
+            if flag==1:
+                print('statements_line',statements_line)  
+                for j in range(len(statements_line)):
+                    if self.graph_nodes[statements_line[j]]['write']==self.graph_nodes[i]['write']:
+                        self.slicepoint(statements_line[j:],self.graph_nodes[statements_line[j]]['read'])
         
         print('\n self.slice_results_line before control_graph_nodes',self.slice_results_line)
 
@@ -306,8 +310,8 @@ class Slice(BaseAnalysis):
                             if i in str(type(updated_node)) and str(location.start.line) not in self.lines_to_keep:
                                 return cst.RemoveFromParent()
                         else:
-                            ### 2.3. remove elif or else
-                            if ('If' in str(type(updated_node)) or 'Else' in str(type(updated_node))) and location.start.line not in self.control_graph_nodes_cst:  
+                            ### 2.3. remove elif or else #'If' in str(type(updated_node)) or
+                            if ( 'libcst._nodes.statement.Else' in str(type(updated_node))) and location.start.line not in self.control_graph_nodes_cst:  
                                 flag=1
                                 for i in self.control_graph_nodes_cst:
                                     if location.start.line > i and location.start.line in self.control_graph_nodes_cst[i]['body_lines'] :
@@ -319,7 +323,7 @@ class Slice(BaseAnalysis):
                                     return cst.RemoveFromParent()
                                 else:
                                     return updated_node
-                            else:     
+                            else:
                                 return updated_node
 
             syntax_tree = cst.parse_module(code)
