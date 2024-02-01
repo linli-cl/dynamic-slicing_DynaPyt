@@ -17,8 +17,8 @@ class Slice(BaseAnalysis):
         self.comment_line=0 #: int # the line number of the slice criterion
         self.keep_lines=[] # the lines of Class and call of slice_me()
         self.asts = {}
-        self.graph_nodes={} # the nodes of data flow statements(line number, read and write)
-        self.control_graph_nodes={}  # the nodes of control flow dependences(read)
+        self.graph_nodes={} # the nodes of data flow statements(line number, read and write, addtion)
+        self.control_graph_nodes={}  # the nodes of control flow dependences(line number,read, body_lines)
         self.slice_results_line=set() # the lines of slice results
              
     def get_location_name(self,dyn_ast,iid):
