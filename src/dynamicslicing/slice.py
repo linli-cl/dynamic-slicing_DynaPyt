@@ -17,7 +17,7 @@ class Slice(BaseAnalysis):
         self.comment_line=0 #: int # the line number of the slice criterion
         self.keep_lines=[] # the lines of Class and call of slice_me()
         self.asts = {}
-        self.graph_nodes={} # the nodes of data flow statements(line number, read and write, addtion)
+        self.graph_nodes={} # the nodes of data flow statements(line number, read and write, addition)
         self.control_graph_nodes={}  # the nodes of control flow dependences(line number,read, body_lines)
         self.slice_results_line=set() # the lines of slice results
              
@@ -92,7 +92,7 @@ class Slice(BaseAnalysis):
         # print('read')
         # print(c,b) #for debug
         if c not in self.graph_nodes:
-            self.graph_nodes[c] =  {'write':set(),'read':set(),'addtion':set()}
+            self.graph_nodes[c] =  {'write':set(),'read':set(),'addition':set()}
         if 'libcst._nodes.expression.Name' in str(b):
             self.graph_nodes[c]['read'].add(a.value)
         elif 'libcst._nodes.expression.Attribute' in str(b):
@@ -111,7 +111,7 @@ class Slice(BaseAnalysis):
         # print(c,b)
 
         if c not in self.graph_nodes:
-            self.graph_nodes[c] =  {'write':set(),'read':set(),'addtion':set()}
+            self.graph_nodes[c] =  {'write':set(),'read':set(),'addition':set()}
         if 'libcst._nodes.statement.Assign' in str(b):
             if type(a.targets[0].target.value) is str:
                 self.graph_nodes[c]['write'].add(a.targets[0].target.value)
@@ -135,7 +135,7 @@ class Slice(BaseAnalysis):
         if func_name in str(type(new_val)) or 'list' in str(type(new_val)): 
             try:
                 if isinstance(a.value.value,str):   #if the node exist a.value.value, and it is a str
-                    self.graph_nodes[c]['addtion'].add(a.value.value) 
+                    self.graph_nodes[c]['addition'].add(a.value.value) 
             except Exception as e:
                 pass
 
@@ -205,7 +205,7 @@ class Slice(BaseAnalysis):
             # print('pre_call')
             # print(c,b) #for debug
             if c not in self.graph_nodes:
-                self.graph_nodes[c] =  {'write':set(),'read':set(),'addtion':set()}
+                self.graph_nodes[c] =  {'write':set(),'read':set(),'addition':set()}
             self.graph_nodes[c]['write'].add(a.func.value.value)
 
 
@@ -251,9 +251,9 @@ class Slice(BaseAnalysis):
         slice_point=self.graph_nodes[statements_line[0]]['read']
         self.slicepoint(statements_line[0:],slice_point)
 
-        # 1.2.Recursion for addtion test(milestone2 test 11, 12):
+        # 1.2.Recursion for addition test(milestone2 test 11, 12):
         for i in self.graph_nodes:
-            if self.graph_nodes[i]['addtion'] != set():
+            if self.graph_nodes[i]['addition'] != set():
                 templist= [x for x in self.slice_results_line if x < i]
                 if templist != []:
                     for j in range(len(statements_line)):
