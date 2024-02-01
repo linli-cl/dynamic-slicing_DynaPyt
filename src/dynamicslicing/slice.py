@@ -17,8 +17,8 @@ class Slice(BaseAnalysis):
         self.comment_line=0 #: int # the line number of the slice criterion
         self.keep_lines=[] # the lines of Class and call of slice_me()
         self.asts = {}
-        self.graph={} # the graph of data flow statements(line number, read and write)
-        self.control_graph={}  # the graph of control flow dependences
+        self.graph_nodes={} # the nodes of data flow statements(line number, read and write)
+        self.control_graph_nodes={}  # the nodes of control flow dependences(read)
         self.slice_results_line=set() # the lines of slice results
              
     def get_location_name(self,dyn_ast,iid):
@@ -91,15 +91,15 @@ class Slice(BaseAnalysis):
         a,b,c =self.get_location_name(dyn_ast,iid) 
         # print('read')
         # print(c,b) #for debug
-        if c not in self.graph:
-            self.graph[c] =  {'write':set(),'read':set(),'addtion':set()}
+        if c not in self.graph_nodes:
+            self.graph_nodes[c] =  {'write':set(),'read':set(),'addtion':set()}
         if 'libcst._nodes.expression.Name' in str(b):
-            self.graph[c]['read'].add(a.value)
+            self.graph_nodes[c]['read'].add(a.value)
         elif 'libcst._nodes.expression.Attribute' in str(b):
             if a.attr.value in ['append','pop','remove', 'insert','extend']: 
-                self.graph[c]['write'].add(a.value.value) # modify the code, so here should be 'write'
+                self.graph_nodes[c]['write'].add(a.value.value) # modify the code, so here should be 'write'
             else:
-                self.graph[c]['read'].add(a.value.value)
+                self.graph_nodes[c]['read'].add(a.value.value)
         else:
             pass
 
@@ -110,20 +110,20 @@ class Slice(BaseAnalysis):
         # print('write')
         # print(c,b)
 
-        if c not in self.graph:
-            self.graph[c] =  {'write':set(),'read':set(),'addtion':set()}
+        if c not in self.graph_nodes:
+            self.graph_nodes[c] =  {'write':set(),'read':set(),'addtion':set()}
         if 'libcst._nodes.statement.Assign' in str(b):
             if type(a.targets[0].target.value) is str:
-                self.graph[c]['write'].add(a.targets[0].target.value)
+                self.graph_nodes[c]['write'].add(a.targets[0].target.value)
             else:
-                self.graph[c]['write'].add(a.targets[0].target.value.value)
+                self.graph_nodes[c]['write'].add(a.targets[0].target.value.value)
             if 'libcst._nodes.expression.Subscript' in  str(type(a.targets[0].target)):
-                self.graph[c]['read'].add(a.targets[0].target.value.value) # in test_5, like ages[-1]=150, here should be 'read'
+                self.graph_nodes[c]['read'].add(a.targets[0].target.value.value) # in test_5, like ages[-1]=150, here should be 'read'
         elif 'libcst._nodes.statement.AugAssign' in str(b):
             if 'libcst._nodes.expression.Subscript' in str(type(a.target)) or 'libcst._nodes.expression.Attribute' in str(type(a.target)):
-                self.graph[c]['write'].add(a.target.value.value)
+                self.graph_nodes[c]['write'].add(a.target.value.value)
             else:
-                self.graph[c]['write'].add(a.target.value)
+                self.graph_nodes[c]['write'].add(a.target.value)
         else:
             pass
 
@@ -135,7 +135,7 @@ class Slice(BaseAnalysis):
         if func_name in str(type(new_val)) or 'list' in str(type(new_val)): 
             try:
                 if isinstance(a.value.value,str):   #if the node exist a.value.value, and it is a str
-                    self.graph[c]['addtion'].add(a.value.value) 
+                    self.graph_nodes[c]['addtion'].add(a.value.value) 
             except Exception as e:
                 pass
 
@@ -149,10 +149,10 @@ class Slice(BaseAnalysis):
         ### 1. initialize the control_graph
         body_line=[self.iid_object.iid_to_location[iid].start_line+1, self.iid_object.iid_to_location[iid].end_line+1]
         body_line_list=[i for i in range(body_line[0],body_line[1])]
-        if c not in self.control_graph:
-            self.control_graph[c] =  {'read':set(),'body_lines':set()}
+        if c not in self.control_graph_nodes:
+            self.control_graph_nodes[c] =  {'read':set(),'body_lines':set()}
         for i in body_line_list:
-            self.control_graph[c]['body_lines'].add(i)
+            self.control_graph_nodes[c]['body_lines'].add(i)
         
         ### 2.1 For
         if 'libcst._nodes.statement.For' in str(type(a)):
@@ -161,36 +161,36 @@ class Slice(BaseAnalysis):
             ### 2.2 IF
             if 'libcst._nodes.expression.Attribute' in str(type(a.test.left)):
                 strr=a.test.left.value.value
-                self.control_graph[c]['read'].add(strr)
+                self.control_graph_nodes[c]['read'].add(strr)
                 try:  
                     strr_right=a.test.comparisons[0].comparator.value
-                    self.control_graph[c]['read'].add(strr_right)
+                    self.control_graph_nodes[c]['read'].add(strr_right)
                 except Exception as e:
                     pass
             
             ### 2.3 while
             elif 'libcst._nodes.expression.BooleanOperation' in str(type(a.test.left)) and 'libcst._nodes.statement.While' in str(type(a)): 
                 strr1=a.test.left.left.left.value.value  
-                self.control_graph[c]['read'].add(strr1)
+                self.control_graph_nodes[c]['read'].add(strr1)
                 try:
                     strr1_right=a.test.left.left.comparisons[0].comparator.value
-                    self.control_graph[c]['read'].add(strr1_right)
+                    self.control_graph_nodes[c]['read'].add(strr1_right)
                 except Exception as e:
                     pass
                 strr2=a.test.left.right.left.value.value  
-                self.control_graph[c]['read'].add(strr2)
+                self.control_graph_nodes[c]['read'].add(strr2)
                 try:
                     strr2_right=a.test.right.right.comparisons[0].comparator.value
-                    self.control_graph[c]['read'].add(strr2_right)
+                    self.control_graph_nodes[c]['read'].add(strr2_right)
                 except Exception as e:
                     pass
             else:
                 strr=a.test.left.value
-                self.control_graph[c]['read'].add(strr)
+                self.control_graph_nodes[c]['read'].add(strr)
 
             try:
                 strr_right=a.body.body[0].body[0].target.value.value
-                self.control_graph[c]['read'].add(strr_right)
+                self.control_graph_nodes[c]['read'].add(strr_right)
             except Exception as e:
                 pass
 
@@ -204,76 +204,76 @@ class Slice(BaseAnalysis):
             a,b,c=self.get_location_name(dyn_ast,iid)
             # print('pre_call')
             # print(c,b) #for debug
-            if c not in self.graph:
-                self.graph[c] =  {'write':set(),'read':set(),'addtion':set()}
-            self.graph[c]['write'].add(a.func.value.value)
+            if c not in self.graph_nodes:
+                self.graph_nodes[c] =  {'write':set(),'read':set(),'addtion':set()}
+            self.graph_nodes[c]['write'].add(a.func.value.value)
 
 
-    def print_graph(self,graphname='graph'):
+    def print_graph_nodes(self,graphname='graph'):
         '''
-        Prints the content of the graph attribute for debugging purposes.
+        Prints the content of the graph nodes dir attribute for debugging purposes.
         '''
         if graphname=='graph':
-            print('graph:')
-            for i,j in self.graph.items():
+            print('graph_nodes:')
+            for i,j in self.graph_nodes.items():
                 print(i,j)
         else:
-            print('control_graph:')
-            for i,j in self.control_graph.items():
+            print('control_graph_nodes:')
+            for i,j in self.control_graph_nodes.items():
                 print(i,j)
 
-    def slicepoint(self,graph_line,slice_point):
+    def slicepoint(self,statement_line,slice_point):
         '''
         After getting the graph. Use recursion to get slice nodes.
         '''
-        self.slice_results_line.add(graph_line[0]) # here got the slice line
+        self.slice_results_line.add(statement_line[0]) # here got the slice line
         for j in slice_point: # continue the recrusion of slicing
-            for k in range(1,len(graph_line)):
-                if j in self.graph[graph_line[k]]['write']:
-                    self.slicepoint(graph_line[k:],self.graph[graph_line[k]]['read'])         
+            for k in range(1,len(statement_line)):
+                if j in self.graph_nodes[statement_line[k]]['write']:
+                    self.slicepoint(statement_line[k:],self.graph_nodes[statement_line[k]]['read'])         
 
     def end_execution(self) -> None:
         '''
         # Finalizes the execution of the analysis.
-        # 1.Based on the graph, control graph and keep_lines, find the lines to be sliced through recursion.
+        # 1.Based on the graph_nodes, control_graph_nodes and keep_lines, find the lines to be sliced through recursion.
         # 2.Removes unnecessary lines based on the lines_to_keep and writes the modified code to a new file
         # 3.Write the new code to slice.py
         '''
         print('-------------------------')
-        self.print_graph('control_graph')
-        self.print_graph()
+        self.print_graph_nodes('control_graph_nodes')
+        self.print_graph_nodes()
 
-        ### 1.Based on the graph, control graph and keep_lines, find the lines to be sliced through recursion.
+        ### 1.Based on the graph_nodes, control_graph_nodes and keep_lines, find the lines to be sliced through recursion.
         # 1.1.Recursion for the graph(from hook read and write, (and pre_call)):
-        graph_line=[i for i in reversed(self.graph.keys())]
-        begin_slice_line=graph_line.index(self.comment_line)   
-        graph_line=graph_line[begin_slice_line:] 
-        slice_point=self.graph[graph_line[0]]['read']
-        self.slicepoint(graph_line[0:],slice_point)
+        statement_line=[i for i in reversed(self.graph_nodes.keys())]
+        begin_slice_line=statement_line.index(self.comment_line)   
+        statement_line=statement_line[begin_slice_line:] 
+        slice_point=self.graph_nodes[statement_line[0]]['read']
+        self.slicepoint(statement_line[0:],slice_point)
 
         # 1.2.Recursion for addtion test(milestone2 test 11, 12):
-        for i in self.graph:
-            if self.graph[i]['addtion'] != set():
+        for i in self.graph_nodes:
+            if self.graph_nodes[i]['addtion'] != set():
                 templist= [x for x in self.slice_results_line if x < i]
                 if templist != []:
-                    for j in range(len(graph_line)):
-                        if self.graph[graph_line[j]]['write']==self.graph[i]['write']:
-                            self.slicepoint(graph_line[j:],self.graph[graph_line[j]]['read'])
+                    for j in range(len(statement_line)):
+                        if self.graph_nodes[statement_line[j]]['write']==self.graph_nodes[i]['write']:
+                            self.slicepoint(statement_line[j:],self.graph_nodes[statement_line[j]]['read'])
         
-        print('\n self.slice_results_line before control graph',self.slice_results_line)
+        print('\n self.slice_results_line before control_graph_nodes',self.slice_results_line)
 
-        # 1.3.Recursion for the graph of control flow(from hook enter_control_flow):
-        control_line=[i for i in reversed(self.control_graph.keys())]
+        # 1.3.Recursion for the graph_nodes of control flow(from hook enter_control_flow):
+        control_line=[i for i in reversed(self.control_graph_nodes.keys())]
         for i in control_line:
-            graph_line=[i for i in reversed(self.graph.keys())]
-            for j in self.control_graph[i]['body_lines']:
+            statement_line=[i for i in reversed(self.graph_nodes.keys())]
+            for j in self.control_graph_nodes[i]['body_lines']:
                 if j in self.slice_results_line:
                     self.slice_results_line.add(i)
-                    if self.control_graph[i]['read'] != set():
-                        begin_slice_line=graph_line.index(i)   
-                        graph_line=graph_line[begin_slice_line:]
-                        read_point=self.control_graph[i]['read']
-                        self.slicepoint(graph_line[0:],read_point)
+                    if self.control_graph_nodes[i]['read'] != set():
+                        begin_slice_line=statement_line.index(i)   
+                        statement_line=statement_line[begin_slice_line:]
+                        read_point=self.control_graph_nodes[i]['read']
+                        self.slicepoint(statement_line[0:],read_point)
 
         # 1.4.get the lines of keep_lines (Class(from the start line to the end line) and call of slice_me())
         for i in self.keep_lines: 
@@ -286,9 +286,9 @@ class Slice(BaseAnalysis):
         def remove_lines(code: str, lines_to_keep : List[int]) -> str:
             class RemoveLines(cst.CSTTransformer):
                 METADATA_DEPENDENCIES = ( PositionProvider,)
-                def __init__(self, lines_to_keep, control_graph):
+                def __init__(self, lines_to_keep, control_graph_nodes):
                     self.lines_to_keep = lines_to_keep
-                    self.control_graph_cst=control_graph
+                    self.control_graph_nodes_cst=control_graph_nodes
                     self.cl=0
 
                 def on_leave(self, original_node:"CSTNode", updated_node: "CSTNode" ) :#-> Union["CSTNode", RemovalSentinel]:
@@ -307,12 +307,12 @@ class Slice(BaseAnalysis):
                                 return cst.RemoveFromParent()
                         else:
                             ### 2.3. remove elif or else
-                            if ('If' in str(type(updated_node)) or 'Else' in str(type(updated_node))) and location.start.line not in self.control_graph_cst:  
+                            if ('If' in str(type(updated_node)) or 'Else' in str(type(updated_node))) and location.start.line not in self.control_graph_nodes_cst:  
                                 flag=1
-                                for i in self.control_graph_cst:
-                                    if location.start.line > i and location.start.line in self.control_graph_cst[i]['body_lines'] :
+                                for i in self.control_graph_nodes_cst:
+                                    if location.start.line > i and location.start.line in self.control_graph_nodes_cst[i]['body_lines'] :
                                         flag=0
-                                        for j in self.control_graph_cst[i]['body_lines']:
+                                        for j in self.control_graph_nodes_cst[i]['body_lines']:
                                             if j > location.start.line and str(j) in self.lines_to_keep:
                                                 flag=1
                                 if flag==0:
@@ -324,7 +324,7 @@ class Slice(BaseAnalysis):
 
             syntax_tree = cst.parse_module(code)
             wrapper = cst.metadata.MetadataWrapper(syntax_tree)
-            code_modifier = RemoveLines(lines_to_keep,self.control_graph)
+            code_modifier = RemoveLines(lines_to_keep,self.control_graph_nodes)
             new_syntax_tree = wrapper.visit(code_modifier)
             return new_syntax_tree.code
 

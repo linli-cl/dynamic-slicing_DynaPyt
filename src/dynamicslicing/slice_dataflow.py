@@ -17,7 +17,7 @@ class SliceDataflow(BaseAnalysis):
         self.comment_line: int # the line number of the slice criterion
         self.keep_lines=[] # the lines of Class and call of slice_me()
         self.asts = {}
-        self.graph={}
+        self.graph_nodes={} #graph_nodes
         self.slice_results_line=set() # the lines of slice results
              
     def get_location_name(self,dyn_ast,iid):
@@ -83,15 +83,15 @@ class SliceDataflow(BaseAnalysis):
         #print(c,b,a) #for debug
 
         # Locate the code that meets the conditions
-        if c not in self.graph:
-            self.graph[c] =  {'write':set(),'read':set(),'addtion':set()}
+        if c not in self.graph_nodes:
+            self.graph_nodes[c] =  {'write':set(),'read':set(),'addtion':set()}
         if 'libcst._nodes.expression.Name' in str(b):
-            self.graph[c]['read'].add(a.value)
+            self.graph_nodes[c]['read'].add(a.value)
         elif 'libcst._nodes.expression.Attribute' in str(b):
             if a.attr.value in ['append','pop','remove', 'insert','extend']:
-                self.graph[c]['write'].add(a.value.value) # modify the code, so here should be 'write'
+                self.graph_nodes[c]['write'].add(a.value.value) # modify the code, so here should be 'write'
             else:
-                self.graph[c]['read'].add(a.value.value)
+                self.graph_nodes[c]['read'].add(a.value.value)
         else:
             pass
         
@@ -101,17 +101,17 @@ class SliceDataflow(BaseAnalysis):
         a,b,c=self.get_location_name(dyn_ast,iid) #a,b,c are node, type_node, codeline
         #print(c,b,a)
 
-        if c not in self.graph:
-            self.graph[c] =  {'write':set(),'read':set(),'addtion':set()}
+        if c not in self.graph_nodes:
+            self.graph_nodes[c] =  {'write':set(),'read':set(),'addtion':set()}
         if 'libcst._nodes.statement.Assign' in str(b):
             if type(a.targets[0].target.value) is str:
-                self.graph[c]['write'].add(a.targets[0].target.value)
+                self.graph_nodes[c]['write'].add(a.targets[0].target.value)
             else:
-                self.graph[c]['write'].add(a.targets[0].target.value.value)
+                self.graph_nodes[c]['write'].add(a.targets[0].target.value.value)
             if 'libcst._nodes.expression.Subscript' in  str(type(a.targets[0].target)):
-                self.graph[c]['read'].add(a.targets[0].target.value.value) # in test_5, like ages[-1]=150, here should be 'read'
+                self.graph_nodes[c]['read'].add(a.targets[0].target.value.value) # in test_5, like ages[-1]=150, here should be 'read'
         elif 'libcst._nodes.statement.AugAssign' in str(b):
-            self.graph[c]['write'].add(a.target.value)
+            self.graph_nodes[c]['write'].add(a.target.value)
         else:
             pass
 
@@ -123,27 +123,27 @@ class SliceDataflow(BaseAnalysis):
         if func_name in str(type(new_val)) or 'list' in str(type(new_val)): 
             try:
                 if isinstance(a.value.value,str):   #if the node exist a.value.value, and it is a str
-                    self.graph[c]['addtion'].add(a.value.value) 
+                    self.graph_nodes[c]['addtion'].add(a.value.value) 
             except Exception as e:
                 pass
 
-    def print_graph(self):
+    def print_graph_nodes(self):
         '''
-        Prints the content of the graph attribute for debugging purposes.
+        Prints the content of the graph nodes dir attribute for debugging purposes.
         '''
-        print('graph:')
-        for i,j in self.graph.items():
+        print('graph_nodes:')
+        for i,j in self.graph_nodes.items():
             print(i,j)
 
-    def slicepoint(self,graph_line,slice_point):
+    def slicepoint(self,statement_line,slice_point):
         '''
         After getting the graph. Use recursion to get slice nodes.
         '''
-        self.slice_results_line.add(graph_line[0])
+        self.slice_results_line.add(statement_line[0])
         for j in slice_point:
-            for k in range(1,len(graph_line)):
-                if j in self.graph[graph_line[k]]['write']:
-                    self.slicepoint(graph_line[k:],self.graph[graph_line[k]]['read'])         
+            for k in range(1,len(statement_line)):
+                if j in self.graph_nodes[statement_line[k]]['write']:
+                    self.slicepoint(statement_line[k:],self.graph_nodes[statement_line[k]]['read'])         
         
     def end_execution(self) -> None:
         '''
@@ -151,23 +151,23 @@ class SliceDataflow(BaseAnalysis):
         1.Based on the graph, find the lines to be sliced through recursion.
         2.Removes unnecessary lines based on the lines_to_keep and writes the modified code to a new file
         '''
-        self.print_graph()  #print to debug
-        graph_line=[i for i in reversed(self.graph.keys())]
-        begin_slice_line=graph_line.index(self.comment_line)   
-        graph_line=graph_line[begin_slice_line:] # 1.1Recursion from the line of slice criterion
+        self.print_graph_nodes()  #print to debug
+        statement_line=[i for i in reversed(self.graph_nodes.keys())]
+        begin_slice_line=statement_line.index(self.comment_line)   
+        statement_line=statement_line[begin_slice_line:] # 1.1Recursion from the line of slice criterion
 
-        slice_point=self.graph[graph_line[0]]['read']
-        self.slice_results_line.add(graph_line[0])
-        self.slicepoint(graph_line[0:],slice_point)
+        slice_point=self.graph_nodes[statement_line[0]]['read']
+        self.slice_results_line.add(statement_line[0])
+        self.slicepoint(statement_line[0:],slice_point)
 
         # 1.2.Recursion for addtion test:
-        for i in self.graph:
-            if self.graph[i]['addtion'] != set():
+        for i in self.graph_nodes:
+            if self.graph_nodes[i]['addtion'] != set():
                 templist= [x for x in self.slice_results_line if x < i]
                 if templist != []:
-                    for j in range(len(graph_line)):
-                        if self.graph[graph_line[j]]['write']==self.graph[i]['write']:
-                            self.slicepoint(graph_line[j:],self.graph[graph_line[j]]['read'])
+                    for j in range(len(statement_line)):
+                        if self.graph_nodes[statement_line[j]]['write']==self.graph_nodes[i]['write']:
+                            self.slicepoint(statement_line[j:],self.graph_nodes[statement_line[j]]['read'])
 
         for i in self.keep_lines: # get the lines of Class(from the start line to the end line) and call of slice_me()
             for j in range(i[0],i[1]+1):
@@ -201,5 +201,5 @@ class SliceDataflow(BaseAnalysis):
     
         code=remove_lines(self.code,lines_to_keep)
         
-        print(code)
+        print('\n',code)
         write_to_file(code)
