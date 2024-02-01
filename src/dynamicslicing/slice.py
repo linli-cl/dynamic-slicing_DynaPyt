@@ -17,7 +17,7 @@ class Slice(BaseAnalysis):
         self.comment_line=0 #: int # the line number of the slice criterion
         self.keep_lines=[] # the lines of Class and call of slice_me()
         self.asts = {}
-        self.graph_nodes={} # the nodes of data flow statements(line number, read and write, i)
+        self.graph_nodes={} # the nodes of data flow statements(line number, read and write, addtion)
         self.control_graph_nodes={}  # the nodes of control flow dependences(line number,read, body_lines)
         self.slice_results_line=set() # the lines of slice results
              
@@ -92,7 +92,7 @@ class Slice(BaseAnalysis):
         # print('read')
         # print(c,b) #for debug
         if c not in self.graph_nodes:
-            self.graph_nodes[c] =  {'write':set(),'read':set(),'i':set()}
+            self.graph_nodes[c] =  {'write':set(),'read':set(),'addtion':set()}
         if 'libcst._nodes.expression.Name' in str(b):
             self.graph_nodes[c]['read'].add(a.value)
         elif 'libcst._nodes.expression.Attribute' in str(b):
@@ -111,7 +111,7 @@ class Slice(BaseAnalysis):
         # print(c,b)
 
         if c not in self.graph_nodes:
-            self.graph_nodes[c] =  {'write':set(),'read':set(),'i':set()}
+            self.graph_nodes[c] =  {'write':set(),'read':set(),'addtion':set()}
         if 'libcst._nodes.statement.Assign' in str(b):
             if type(a.targets[0].target.value) is str:
                 self.graph_nodes[c]['write'].add(a.targets[0].target.value)
@@ -135,7 +135,7 @@ class Slice(BaseAnalysis):
         if func_name in str(type(new_val)) or 'list' in str(type(new_val)): 
             try:
                 if isinstance(a.value.value,str):   #if the node exist a.value.value, and it is a str
-                    self.graph_nodes[c]['addition'].add(a.value.value) 
+                    self.graph_nodes[c]['addtion'].add(a.value.value) 
             except Exception as e:
                 pass
 
@@ -205,7 +205,7 @@ class Slice(BaseAnalysis):
             # print('pre_call')
             # print(c,b) #for debug
             if c not in self.graph_nodes:
-                self.graph_nodes[c] =  {'write':set(),'read':set(),'i':set()}
+                self.graph_nodes[c] =  {'write':set(),'read':set(),'addtion':set()}
             self.graph_nodes[c]['write'].add(a.func.value.value)
 
 
@@ -222,15 +222,15 @@ class Slice(BaseAnalysis):
             for i,j in self.control_graph_nodes.items():
                 print(i,j)
 
-    def slicepoint(self,statement_line,slice_point):
+    def slicepoint(self,statements_line,slice_point):
         '''
         After getting the graph. Use recursion to get slice nodes.
         '''
-        self.slice_results_line.add(statement_line[0]) # here got the slice line
+        self.slice_results_line.add(statements_line[0]) # here got the slice line
         for j in slice_point: # continue the recrusion of slicing
-            for k in range(1,len(statement_line)):
-                if j in self.graph_nodes[statement_line[k]]['write']:
-                    self.slicepoint(statement_line[k:],self.graph_nodes[statement_line[k]]['read'])         
+            for k in range(1,len(statements_line)):
+                if j in self.graph_nodes[statements_line[k]]['write']:
+                    self.slicepoint(statements_line[k:],self.graph_nodes[statements_line[k]]['read'])         
 
     def end_execution(self) -> None:
         '''
@@ -245,35 +245,35 @@ class Slice(BaseAnalysis):
 
         ### 1.Based on the graph_nodes, control_graph_nodes and keep_lines, find the lines to be sliced through recursion.
         # 1.1.Recursion for the graph(from hook read and write, (and pre_call)):
-        statement_line=[i for i in reversed(self.graph_nodes.keys())]
-        begin_slice_line=statement_line.index(self.comment_line)   
-        statement_line=statement_line[begin_slice_line:] 
-        slice_point=self.graph_nodes[statement_line[0]]['read']
-        self.slicepoint(statement_line[0:],slice_point)
+        statements_line=[i for i in reversed(self.graph_nodes.keys())]
+        begin_slice_line=statements_line.index(self.comment_line)   
+        statements_line=statements_line[begin_slice_line:] 
+        slice_point=self.graph_nodes[statements_line[0]]['read']
+        self.slicepoint(statements_line[0:],slice_point)
 
-        # 1.2.Recursion for i test(milestone2 test 11, 12):
+        # 1.2.Recursion for addtion test(milestone2 test 11, 12):
         for i in self.graph_nodes:
-            if self.graph_nodes[i]['i'] != set():
+            if self.graph_nodes[i]['addtion'] != set():
                 templist= [x for x in self.slice_results_line if x < i]
                 if templist != []:
-                    for j in range(len(statement_line)):
-                        if self.graph_nodes[statement_line[j]]['write']==self.graph_nodes[i]['write']:
-                            self.slicepoint(statement_line[j:],self.graph_nodes[statement_line[j]]['read'])
+                    for j in range(len(statements_line)):
+                        if self.graph_nodes[statements_line[j]]['write']==self.graph_nodes[i]['write']:
+                            self.slicepoint(statements_line[j:],self.graph_nodes[statements_line[j]]['read'])
         
         print('\n self.slice_results_line before control_graph_nodes',self.slice_results_line)
 
         # 1.3.Recursion for the graph_nodes of control flow(from hook enter_control_flow):
         control_line=[i for i in reversed(self.control_graph_nodes.keys())]
         for i in control_line:
-            statement_line=[i for i in reversed(self.graph_nodes.keys())]
+            statements_line=[i for i in reversed(self.graph_nodes.keys())]
             for j in self.control_graph_nodes[i]['body_lines']:
                 if j in self.slice_results_line:
                     self.slice_results_line.add(i)
                     if self.control_graph_nodes[i]['read'] != set():
-                        begin_slice_line=statement_line.index(i)   
-                        statement_line=statement_line[begin_slice_line:]
+                        begin_slice_line=statements_line.index(i)   
+                        statements_line=statements_line[begin_slice_line:]
                         read_point=self.control_graph_nodes[i]['read']
-                        self.slicepoint(statement_line[0:],read_point)
+                        self.slicepoint(statements_line[0:],read_point)
 
         # 1.4.get the lines of keep_lines (Class(from the start line to the end line) and call of slice_me())
         for i in self.keep_lines: 

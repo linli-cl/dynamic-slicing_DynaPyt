@@ -135,15 +135,15 @@ class SliceDataflow(BaseAnalysis):
         for i,j in self.graph_nodes.items():
             print(i,j)
 
-    def slicepoint(self,statement_line,slice_point):
+    def slicepoint(self,statements_line,slice_point):
         '''
         After getting the graph. Use recursion to get slice nodes.
         '''
-        self.slice_results_line.add(statement_line[0])
+        self.slice_results_line.add(statements_line[0])
         for j in slice_point:
-            for k in range(1,len(statement_line)):
-                if j in self.graph_nodes[statement_line[k]]['write']:
-                    self.slicepoint(statement_line[k:],self.graph_nodes[statement_line[k]]['read'])         
+            for k in range(1,len(statements_line)):
+                if j in self.graph_nodes[statements_line[k]]['write']:
+                    self.slicepoint(statements_line[k:],self.graph_nodes[statements_line[k]]['read'])         
         
     def end_execution(self) -> None:
         '''
@@ -152,22 +152,22 @@ class SliceDataflow(BaseAnalysis):
         2.Removes unnecessary lines based on the lines_to_keep and writes the modified code to a new file
         '''
         self.print_graph_nodes()  #print to debug
-        statement_line=[i for i in reversed(self.graph_nodes.keys())]
-        begin_slice_line=statement_line.index(self.comment_line)   
-        statement_line=statement_line[begin_slice_line:] # 1.1Recursion from the line of slice criterion
+        statements_line=[i for i in reversed(self.graph_nodes.keys())]
+        begin_slice_line=statements_line.index(self.comment_line)   
+        statements_line=statements_line[begin_slice_line:] # 1.1Recursion from the line of slice criterion
 
-        slice_point=self.graph_nodes[statement_line[0]]['read']
-        self.slice_results_line.add(statement_line[0])
-        self.slicepoint(statement_line[0:],slice_point)
+        slice_point=self.graph_nodes[statements_line[0]]['read']
+        self.slice_results_line.add(statements_line[0])
+        self.slicepoint(statements_line[0:],slice_point)
 
         # 1.2.Recursion for i test:
         for i in self.graph_nodes:
             if self.graph_nodes[i]['i'] != set():
                 templist= [x for x in self.slice_results_line if x < i]
                 if templist != []:
-                    for j in range(len(statement_line)):
-                        if self.graph_nodes[statement_line[j]]['write']==self.graph_nodes[i]['write']:
-                            self.slicepoint(statement_line[j:],self.graph_nodes[statement_line[j]]['read'])
+                    for j in range(len(statements_line)):
+                        if self.graph_nodes[statements_line[j]]['write']==self.graph_nodes[i]['write']:
+                            self.slicepoint(statements_line[j:],self.graph_nodes[statements_line[j]]['read'])
 
         for i in self.keep_lines: # get the lines of Class(from the start line to the end line) and call of slice_me()
             for j in range(i[0],i[1]+1):
