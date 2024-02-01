@@ -84,7 +84,7 @@ class SliceDataflow(BaseAnalysis):
 
         # Locate the code that meets the conditions
         if c not in self.graph_nodes:
-            self.graph_nodes[c] =  {'write':set(),'read':set(),'addtion':set()}
+            self.graph_nodes[c] =  {'write':set(),'read':set(),'i':set()}
         if 'libcst._nodes.expression.Name' in str(b):
             self.graph_nodes[c]['read'].add(a.value)
         elif 'libcst._nodes.expression.Attribute' in str(b):
@@ -102,7 +102,7 @@ class SliceDataflow(BaseAnalysis):
         #print(c,b,a)
 
         if c not in self.graph_nodes:
-            self.graph_nodes[c] =  {'write':set(),'read':set(),'addtion':set()}
+            self.graph_nodes[c] =  {'write':set(),'read':set(),'i':set()}
         if 'libcst._nodes.statement.Assign' in str(b):
             if type(a.targets[0].target.value) is str:
                 self.graph_nodes[c]['write'].add(a.targets[0].target.value)
@@ -123,7 +123,7 @@ class SliceDataflow(BaseAnalysis):
         if func_name in str(type(new_val)) or 'list' in str(type(new_val)): 
             try:
                 if isinstance(a.value.value,str):   #if the node exist a.value.value, and it is a str
-                    self.graph_nodes[c]['addtion'].add(a.value.value) 
+                    self.graph_nodes[c]['addition'].add(a.value.value) 
             except Exception as e:
                 pass
 
@@ -160,9 +160,9 @@ class SliceDataflow(BaseAnalysis):
         self.slice_results_line.add(statement_line[0])
         self.slicepoint(statement_line[0:],slice_point)
 
-        # 1.2.Recursion for addtion test:
+        # 1.2.Recursion for i test:
         for i in self.graph_nodes:
-            if self.graph_nodes[i]['addtion'] != set():
+            if self.graph_nodes[i]['i'] != set():
                 templist= [x for x in self.slice_results_line if x < i]
                 if templist != []:
                     for j in range(len(statement_line)):
