@@ -17,8 +17,8 @@ class Slice(BaseAnalysis):
         self.comment_line=0 #: int # the line number of the slice criterion
         self.keep_lines=[] # the lines of Class and call of slice_me()
         self.asts = {}
-        self.graph={}
-        self.control_graph={}   
+        self.graph={} # the graph of data flow statements(line number, read and write)
+        self.control_graph={}  # the graph of control flow dependences
         self.slice_results_line=set() # the lines of slice results
              
     def get_location_name(self,dyn_ast,iid):
@@ -226,8 +226,8 @@ class Slice(BaseAnalysis):
         '''
         After getting the graph. Use recursion to get slice nodes.
         '''
-        self.slice_results_line.add(graph_line[0])
-        for j in slice_point:
+        self.slice_results_line.add(graph_line[0]) # here got the slice line
+        for j in slice_point: # continue the recrusion of slicing
             for k in range(1,len(graph_line)):
                 if j in self.graph[graph_line[k]]['write']:
                     self.slicepoint(graph_line[k:],self.graph[graph_line[k]]['read'])         
