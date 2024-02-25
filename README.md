@@ -16,3 +16,5 @@ of a Python function.
 The analysis of this project is mainly divided into two milestones, data flow slicing and data flow plus
 control flow slicing. Generally speaking, data flow is statements with a sequential structure in Python,
 and control flow is statements with a conditional or loop structure.
+
+Please see "report_Application_of_dynamic_slicing_analysis_in_Python.pdf" for a more detailed project description.
