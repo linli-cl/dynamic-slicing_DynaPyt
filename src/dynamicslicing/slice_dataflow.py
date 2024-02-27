@@ -63,7 +63,7 @@ class SliceDataflow(BaseAnalysis):
                 continue
             if comment != None:
                 location=thepos[node[i]]
-                self.comment_line=location.start.line # 1. the line nu
+                self.comment_line=location.start.line # 1. the line number of the comment line of slice criterion
 
         for i in otherpart_index:
             nodes=wrapper.module.body[i]
@@ -81,7 +81,6 @@ class SliceDataflow(BaseAnalysis):
     def read(self, dyn_ast: str, iid: int, val: Any) -> Any:
         a,b,c =self.get_location_name(dyn_ast,iid) 
         #print(c,b,a) #for debug
-
         # Locate the code that meets the conditions
         if c not in self.graph_nodes:
             self.graph_nodes[c] =  {'write':set(),'read':set(),'addition':set()}
@@ -137,7 +136,7 @@ class SliceDataflow(BaseAnalysis):
 
     def slicepoint(self,statements_line,slice_point):
         '''
-        After getting the graph. Use recursion to get slice nodes.
+        After getting the python dictionaries. Use recursion to get slice nodes.
         '''
         self.slice_results_line.add(statements_line[0])
         for j in slice_point:
@@ -154,8 +153,9 @@ class SliceDataflow(BaseAnalysis):
         self.print_graph_nodes()  #print to debug
         statements_line=[i for i in reversed(self.graph_nodes.keys())]
         begin_slice_line=statements_line.index(self.comment_line)   
-        statements_line=statements_line[begin_slice_line:] # 1.1Recursion from the line of slice criterion
 
+        # 1.1.Recursion from the line of slice criterion
+        statements_line=statements_line[begin_slice_line:] 
         slice_point=self.graph_nodes[statements_line[0]]['read']
         self.slice_results_line.add(statements_line[0])
         self.slicepoint(statements_line[0:],slice_point)
